@@ -1,0 +1,164 @@
+/*
+ ****************************************************************************
+ *
+ *                  UNIVERSITY OF WATERLOO SE 350 RTOS LAB  
+ *
+ *                     Copyright 2020-2022 Yiqing Huang
+ *
+ *          This software is subject to an open source license and 
+ *          may be freely redistributed under the terms of MIT License.
+ ****************************************************************************
+ */
+
+/**************************************************************************//**
+ * @file        ae_proc*.c
+ * @brief       test processes template file
+ *              
+ * @version     V1.2022.01
+ * @authors     Yiqing Huang
+ * @date        2022 JAN
+ * @note        Each process is in an infinite loop. Processes never terminate.
+ *              This file needs to be completed by students.
+ *
+ *****************************************************************************/
+
+#include "rtx.h"
+#include "uart_polling.h"
+#include "ae_proc.h"
+#include "printf.h"
+#include "ae_util.h"
+
+/*
+ *===========================================================================
+ *                             MACROS
+ *===========================================================================
+ */
+
+#ifdef AE_ENABLE
+    
+#define NUM_TESTS       2       // number of tests
+
+#ifdef AE_ECE350
+#define NUM_INIT_TASKS  2       // number of tasks during initialization
+#endif // AE_ECE350
+
+#endif // AE_ENABLE
+/*
+ *===========================================================================
+ *                             GLOBAL VARIABLES 
+ *===========================================================================
+ */
+ 
+#ifdef AE_ENABLE
+
+#ifdef AE_ECE350
+TASK_INIT    g_init_tasks[NUM_INIT_TASKS];
+#endif
+
+
+const char   PREFIX[]      = "G8-TS1";
+const char   PREFIX_LOG[]  = "G8-TS1-LOG ";
+const char   PREFIX_LOG2[] = "G8-TS1-LOG2";
+
+AE_XTEST     g_ae_xtest;                // test data, re-use for each test
+AE_CASE      g_ae_cases[NUM_TESTS];
+AE_CASE_TSK  g_tsk_cases[NUM_TESTS];
+
+#endif // AE_ENABLE
+
+
+/* initialization table item */
+void set_test_procs(PROC_INIT *procs, int num)
+{
+    int i;
+    for( i = 0; i < num; i++ ) {
+        procs[i].m_pid        = (U32)(i+1);
+        procs[i].m_stack_size = USR_SZ_STACK;
+    }
+  
+    procs[0].mpf_start_pc = &proc1;
+    procs[0].m_priority = MEDIUM;
+    procs[1].mpf_start_pc = &proc2;
+    procs[1].m_priority = MEDIUM;
+    procs[2].mpf_start_pc = &proc3;
+    procs[2].m_priority = MEDIUM;
+    procs[3].mpf_start_pc = &proc4;
+    procs[3].m_priority = MEDIUM;
+    procs[4].mpf_start_pc = &proc5;
+    procs[4].m_priority = MEDIUM;
+    procs[5].mpf_start_pc = &proc6;
+    procs[5].m_priority = MEDIUM;
+}
+
+void proc1(void)
+{
+    int i = 0;
+    int flag = 0;
+    while(1) {
+        if(i != 0 && i%5 == 0 && flag == 0){
+            uart1_put_string("\n\r");
+            uart1_put_string("proc1: Setting Priority to LOW\n\r");
+            release_processor();
+            uart1_put_string("proc1: I came back!\n\r");
+            test_exit();
+        }
+        if(flag == 0){
+            uart1_put_char('1');
+            uart1_put_char('A' + i%26);
+        }
+        i++;
+    }
+}
+
+void proc2(void)
+{
+    int i = 0;
+    while(1) {
+        if(i != 0 && i%5 == 0){
+            uart1_put_string("\n\r");
+            uart1_put_string("proc2: Setting Priority to LOW\n\r");
+            set_process_priority(PID_P2, LOW);
+            set_process_priority(PID_P1, HIGH);
+        }
+        uart1_put_char('2');
+        uart1_put_char('A' + i%26);
+        i++;
+    }
+}
+
+void proc3(void)
+{
+    while(1) {
+        uart1_put_string("proc3: Running\n\r");
+        release_processor();
+    }
+}
+
+void proc4(void)
+{
+    while(1) {
+        uart1_put_string("proc4: Running\n\r");
+        release_processor();
+    }
+}
+
+void proc5(void)
+{
+    while(1) {
+        uart1_put_string("proc5: Running\n\r");
+        release_processor();
+    }
+}
+
+void proc6(void)
+{
+    while(1) {
+        uart1_put_string("proc6: Running\n\r");
+        release_processor();
+    }
+}
+/*
+ *===========================================================================
+ *                             END OF FILE
+ *===========================================================================
+ */
